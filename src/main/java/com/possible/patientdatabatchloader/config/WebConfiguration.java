@@ -1,21 +1,17 @@
 package com.possible.patientdatabatchloader.config;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-
-//import org.h2.server.web.WebServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
-import org.springframework.boot.web.servlet.ServletRegistrationBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
 
 /**
  * Configuration of web application with Servlet 3.0 APIs.
  */
-@Configuration
+//@Configuration
 public class WebConfiguration implements ServletContextInitializer {
 
     private final Logger log = LoggerFactory.getLogger(WebConfiguration.class);

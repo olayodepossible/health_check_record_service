@@ -1,12 +1,8 @@
 package com.possible.patientdatabatchloader.config;
 
-import javax.sql.DataSource;
-
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -19,21 +15,21 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-
+import javax.sql.DataSource;
+import java.util.Objects;
 import java.util.Properties;
 
 /**
  * author: abayomi
  *
  */
+@Slf4j
 @Configuration
 @EnableJpaRepositories(
 	value = "com.possible.patientdatabatchloader",
 	entityManagerFactoryRef = "batchEntityManagerFactory")
 @EnableTransactionManagement
 public class DatabaseConfiguration {
-
-	private final Logger log = LoggerFactory.getLogger(DatabaseConfiguration.class);
 
 	private final Environment env;
 
@@ -71,9 +67,7 @@ public class DatabaseConfiguration {
         emfBean.setJpaVendorAdapter(batchJpaVendorAdapter());
 
         Properties jpaProps = new Properties();
-        jpaProps.put("hibernate.physical_naming_strategy",
-            env.getProperty("spring.jpa.hibernate.naming.physical-strategy"));
-        jpaProps.put("hibernate.hbm2ddl.auto", env.getProperty(
+        jpaProps.put("hibernate.ddl.auto", env.getProperty(
             "spring.jpa.hibernate.ddl-auto", "none"));
         jpaProps.put("hibernate.jdbc.fetch_size", env.getProperty(
             "spring.jpa.properties.hibernate.jdbc.fetch_size",
@@ -99,7 +93,7 @@ public class DatabaseConfiguration {
 
     @Bean(name = "batchTransactionManager")
     public PlatformTransactionManager transactionManager() {
-        return new JpaTransactionManager(batchEntityManagerFactory().getObject());
+        return new JpaTransactionManager(Objects.requireNonNull(batchEntityManagerFactory().getObject()));
     }
 
     @Bean
@@ -109,20 +103,4 @@ public class DatabaseConfiguration {
         return exporter;
     }
 
-//    @Bean
-//	public SpringLiquibase liquibase(LiquibaseProperties liquibaseProperties) {
-//		SpringLiquibase liquibase = new SpringLiquibase();
-//		liquibase.setDataSource(batchDataSource());
-//		liquibase.setChangeLog("classpath:config/liquibase/master.xml");
-//		liquibase.setContexts(liquibaseProperties.getContexts());
-//		liquibase.setDefaultSchema(liquibaseProperties.getDefaultSchema());
-//		liquibase.setDropFirst(liquibaseProperties.isDropFirst());
-//		if (env.acceptsProfiles(Constants.SPRING_PROFILE_NO_LIQUIBASE)) {
-//			liquibase.setShouldRun(false);
-//		} else {
-//			liquibase.setShouldRun(liquibaseProperties.isEnabled());
-//			log.debug("Configuring Liquibase");
-//		}
-//		return liquibase;
-//	}
 }
