@@ -2,12 +2,10 @@ package com.possible.patientdatabatchloader;
 
 import com.possible.patientdatabatchloader.config.ApplicationProperties;
 import com.possible.patientdatabatchloader.config.Constants;
-import com.possible.patientdatabatchloader.config.DefaultProfileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.core.env.Environment;
 
@@ -16,11 +14,9 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collection;
 
-/**
- * Main Spring Boot application definition.
- */
+
 @SpringBootApplication
-@EnableConfigurationProperties({ LiquibaseProperties.class, ApplicationProperties.class })
+@EnableConfigurationProperties({ ApplicationProperties.class })
 public class PatientDataBatchLoaderApplication {
 
     private static final Logger log = LoggerFactory.getLogger(PatientDataBatchLoaderApplication.class);
@@ -58,12 +54,11 @@ public class PatientDataBatchLoaderApplication {
      */
     public static void main(String[] args) {
         SpringApplication app = new SpringApplication(PatientDataBatchLoaderApplication.class);
-        DefaultProfileUtil.addDefaultProfile(app);
         Environment env = app.run(args).getEnvironment();
         log.info(
                 "\n----------------------------------------------------------\n\t"
-                        + "Spring Batch Application '{}' is running!"
-                        + "Profile(s): \t{}\n----------------------------------------------------------",
+                        + "Spring Batch Application '{}' is running!\n\t"
+                        + "Active Profile(s): \t{}\n----------------------------------------------------------",
                 env.getProperty("spring.application.name"), env.getActiveProfiles());
     }
 

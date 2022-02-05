@@ -1,8 +1,6 @@
 package com.possible.patientdatabatchloader.config;
 
 import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
-import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -20,8 +18,8 @@ public class JacksonConfiguration {
     /*
      * Jackson Afterburner module to speed up serialization/deserialization.
      */
-    @Bean
-    public AfterburnerModule afterburnerModule() {
-        return new AfterburnerModule();
-    }
+//    @Bean
+//    public AfterburnerModule afterburnerModule() {
+//        return new AfterburnerModule();
+//    }
 }

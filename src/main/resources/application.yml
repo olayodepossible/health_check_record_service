@@ -1,7 +1,6 @@
 spring:
-  port: 8085
   application:
-      name: PatientBatchLoader
+      name: PatientDataBatchLoader
   batch:
     job:
       enabled: false  # setup to run a job on demand
@@ -10,13 +9,21 @@ spring:
       active: #spring.profiles.active#
   jackson:
       serialization.write_dates_as_timestamps: false
-  jpa:
+  datasource:
+    url: jdbc:mysql://127.0.0.1/patient_data_batch_loader?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+    username: root
+    password: ${password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+    jpa:
       open-in-view: false
-      hibernate:
-          ddl-auto: none
+      properties:
+        hibernate:
+          dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+          ddl-auto: update
           naming:
-              physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
-              implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+            physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+            implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
 
 info:
     project:
@@ -29,10 +36,18 @@ management:
       exposure:
         include: '*'
 
-
+flyway:
+  url: jdbc:mysql://127.0.0.1/patient_data_batch_loader?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+  username: root
+  password: ${password}
+  schemas: patient_data_batch_loader
 # ===================================================================
 # Application specific properties
 # ===================================================================
 application:
   BatchInputData:
     inputPath: /Users/aolayode/Documents/my/patient-data-batch-loader/data
+
+#
+#    spring.main.banner-mode=off
+#    logging.pattern.console=%clr(%d{yy-MM-dd E HH:mm:ss.SSS}){blue} %clr(%-5p) %clr(%logger{0}){blue} %clr(%m){faint}%n
