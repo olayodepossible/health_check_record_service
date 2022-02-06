@@ -43,10 +43,8 @@ public class DatabaseConfiguration {
         config.setJdbcUrl(env.getRequiredProperty("spring.datasource.url"));
         config.setUsername(env.getProperty("spring.datasource.username"));
         config.setPassword(env.getProperty("spring.datasource.password"));
-        config.setMinimumIdle(env.getProperty("spring.datasource.min-idle",
-            Integer.class, 2));
-        config.setMaximumPoolSize(env.getProperty("spring.datasource.max-active",
-            Integer.class, 100));
+        config.setMinimumIdle(env.getProperty("spring.datasource.min-idle", Integer.class, 2));
+        config.setMaximumPoolSize(env.getProperty("spring.datasource.max-active", Integer.class, 100));
         config.setTransactionIsolation("TRANSACTION_READ_COMMITTED");
         config.setRegisterMbeans(true);
         return new HikariDataSource(config);

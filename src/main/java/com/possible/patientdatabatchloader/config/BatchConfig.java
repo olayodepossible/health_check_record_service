@@ -17,7 +17,7 @@ import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 
 @Component
-@EnableBatchProcessing // this create a runner by default and execute the job on startup
+@EnableBatchProcessing // this also help to create a runner by default and execute the job on startup
 public class BatchConfig implements BatchConfigurer {
 
     private JobRepository jobRepository; // configure to store batch meta data
