@@ -62,8 +62,15 @@ public class PatientDataBatchLoaderApplication {
                 env.getProperty("spring.application.name"), env.getActiveProfiles());
     }
 
-    //    public static void main(String[] args) {
-//        SpringApplication.run(PatientDataBatchLoaderApplication.class, args);
-//    }
+    /*
+
+        @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
+        ...
+            @Bean
+            public PlatformTransactionManager transactionManager() {
+                return new ResourcelessTransactionManager();
+            }
+        }
+     */
 }
 

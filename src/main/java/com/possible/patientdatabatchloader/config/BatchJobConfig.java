@@ -49,25 +49,44 @@ public class BatchJobConfig {
 
     @Bean
     public JobParametersValidator validator(ApplicationProperties applicationProperties) {
-        return new JobParametersValidator() {
-            @Override
-            public void validate(JobParameters parameters) throws JobParametersInvalidException {
-                String fileName = parameters.getString(Constants.JOB_PARAM_FILE_NAME);
-                if (StringUtils.isBlank(fileName)) {
-                    throw new JobParametersInvalidException(
-                            "The patient-batch-loader.fileName parameter is required.");
+//        return new JobParametersValidator() {
+//            @Override
+//            public void validate(JobParameters parameters) throws JobParametersInvalidException {
+//                String fileName = parameters.getString(Constants.JOB_PARAM_FILE_NAME);
+//                if (StringUtils.isBlank(fileName)) {
+//                    throw new JobParametersInvalidException(
+//                            "The patient-batch-loader.fileName parameter is required.");
+//                }
+//                try {
+//                    Path file = Paths.get(applicationProperties.getBatchInputData().getInputPath() +
+//                            File.separator + fileName);
+//                    if (Files.notExists(file) || !Files.isReadable(file)) {
+//                        throw new Exception("File did not exist or was not readable");
+//                    }
+//                } catch (Exception e) {
+//                    throw new JobParametersInvalidException(
+//                            "The input path + patient-batch-loader.fileName parameter needs to " +
+//                                    "be a valid file location.");
+//                }
+//            }
+//        };
+
+        return parameters -> {
+            String fileName = parameters.getString(Constants.JOB_PARAM_FILE_NAME);
+            if (StringUtils.isBlank(fileName)) {
+                throw new JobParametersInvalidException(
+                        "The patient-batch-loader.fileName parameter is required.");
+            }
+            try {
+                Path file = Paths.get(applicationProperties.getBatchInputData().getInputPath() +
+                        File.separator + fileName);
+                if (Files.notExists(file) || !Files.isReadable(file)) {
+                    throw new Exception("File did not exist or was not readable");
                 }
-                try {
-                    Path file = Paths.get(applicationProperties.getBatchInputData().getInputPath() +
-                            File.separator + fileName);
-                    if (Files.notExists(file) || !Files.isReadable(file)) {
-                        throw new Exception("File did not exist or was not readable");
-                    }
-                } catch (Exception e) {
-                    throw new JobParametersInvalidException(
-                            "The input path + patient-batch-loader.fileName parameter needs to " +
-                                    "be a valid file location.");
-                }
+            } catch (Exception e) {
+                throw new JobParametersInvalidException(
+                        "The input path + patient-batch-loader.fileName parameter needs to " +
+                                "be a valid file location.");
             }
         };
     }

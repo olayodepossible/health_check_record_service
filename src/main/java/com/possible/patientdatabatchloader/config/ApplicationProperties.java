@@ -23,7 +23,7 @@ public class ApplicationProperties {
 
     @Data
     public static class BatchInputData {
-        private String inputPath; // set default value in case of failure
+        private String inputPath;
     }
 
 
