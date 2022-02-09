@@ -14,17 +14,19 @@ import org.springframework.batch.core.configuration.annotation.StepBuilderFactor
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
 import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.LineMapper;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.PathResource;
 
+import javax.persistence.EntityManagerFactory;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,14 +38,6 @@ import java.util.function.Function;
 @Slf4j
 @Configuration
 public class BatchJobConfig {
-//    @Autowired
-//    private JobBuilderFactory jobBuilderFactory;
-
-//    @Autowired
-//    private StepBuilderFactory stepBuilderFactory;
-
-//    @Autowired
-//    private ApplicationProperties applicationProperties;
 
     @Bean
     JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor (JobRegistry jobRegistry){
@@ -64,27 +58,6 @@ public class BatchJobConfig {
 
     @Bean
     public JobParametersValidator validator(ApplicationProperties applicationProperties) {
-//        return new JobParametersValidator() {
-//            @Override
-//            public void validate(JobParameters parameters) throws JobParametersInvalidException {
-//                String fileName = parameters.getString(Constants.JOB_PARAM_FILE_NAME);
-//                if (StringUtils.isBlank(fileName)) {
-//                    throw new JobParametersInvalidException(
-//                            "The patient-batch-loader.fileName parameter is required.");
-//                }
-//                try {
-//                    Path file = Paths.get(applicationProperties.getBatchInputData().getInputPath() +
-//                            File.separator + fileName);
-//                    if (Files.notExists(file) || !Files.isReadable(file)) {
-//                        throw new Exception("File did not exist or was not readable");
-//                    }
-//                } catch (Exception e) {
-//                    throw new JobParametersInvalidException(
-//                            "The input path + patient-batch-loader.fileName parameter needs to " +
-//                                    "be a valid file location.");
-//                }
-//            }
-//        };
 
         return parameters -> {
             String fileName = parameters.getString(Constants.JOB_PARAM_FILE_NAME);
@@ -105,46 +78,20 @@ public class BatchJobConfig {
             }
         };
     }
-//
-//    @Bean
-//    public Step step(ItemReader<PatientDto> itemReader, StepBuilderFactory stepBuilderFactory) throws Exception {
-//      return   stepBuilderFactory
-//            .get(Constants.STEP_NAME)
-//            .<PatientDto, PatientDto>chunk(2)
-//            .reader(itemReader)
-//            .processor(processor())
-//            .writer(writer())
-//            .build();
-//    }
 
     @Bean
     public Step step(ItemReader<PatientDto> itemReader, StepBuilderFactory stepBuilderFactory,
-                     Function<PatientDto, PatientRecord> processor) throws Exception {
+                     Function<PatientDto, PatientRecord> processor, JpaItemWriter<PatientRecord> writer) throws Exception {
         return stepBuilderFactory
                 .get(Constants.STEP_NAME)
                 .<PatientDto, PatientRecord>chunk(2)
                 .reader(itemReader)
                 .processor(processor)
-                .writer(writer())
-                .build();
-    }
-    /*
-    @Bean
-    public Step step(StepBuilderFactory stepBuilderFactory) throws Exception{
-        return stepBuilderFactory
-                .get(Constants.STEP_NAME)
-                .tasklet(new Tasklet() {
-                    @Override
-                    public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
-                        log.debug("HELLO, TESTING BATCH PROCESS");
-                        return RepeatStatus.FINISHED;
-                    }
-                })
+                .writer(writer)
                 .build();
     }
 
-     */
-
+    //Reader
     @Bean
     @StepScope
     public FlatFileItemReader<PatientDto> reader(
@@ -163,7 +110,7 @@ public class BatchJobConfig {
     @Bean
     public LineMapper<PatientDto> lineMapper() {
         DefaultLineMapper<PatientDto> mapper = new DefaultLineMapper<>();
-        mapper.setFieldSetMapper((fieldSet) -> new PatientDto(
+        mapper.setFieldSetMapper(fieldSet -> new PatientDto(
                 fieldSet.readString(0), fieldSet.readString(1),
                 fieldSet.readString(2), fieldSet.readString(3),
                 fieldSet.readString(4), fieldSet.readString(5),
@@ -179,7 +126,7 @@ public class BatchJobConfig {
     @Bean
     @StepScope
     public Function<PatientDto, PatientRecord> processor() {
-        return (patientDto) -> PatientRecord.builder()
+        return patientDto -> PatientRecord.builder()
                 .sourceId(patientDto.getSourceId())
                 .firstName(patientDto.getFirstName())
                 .middleInitial(patientDto.getMiddleInitial())
@@ -195,14 +142,13 @@ public class BatchJobConfig {
                 .build();
     }
 
+    //Writer
     @Bean
     @StepScope
-    public ItemWriter<PatientRecord> writer() {
-        return items -> {
-            for (PatientRecord patientRecord : items) {
-                System.err.println("Writing item: " + patientRecord.toString());
-            }
-        };
+    public JpaItemWriter<PatientRecord> writer(@Qualifier(value="batchEntityManagerFactory") EntityManagerFactory batchEntityManagerFactory) {
+        JpaItemWriter<PatientRecord> writer = new JpaItemWriter<>();
+        writer.setEntityManagerFactory(batchEntityManagerFactory);
+        return writer;
     }
 
 }

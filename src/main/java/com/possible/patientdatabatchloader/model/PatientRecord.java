@@ -19,8 +19,7 @@ import java.time.LocalDate;
 public class PatientRecord implements Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
-    @SequenceGenerator(name = "sequenceGenerator")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "patient_id")
     private Long id;
 

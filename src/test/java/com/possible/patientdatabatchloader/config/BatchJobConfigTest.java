@@ -3,6 +3,7 @@ package com.possible.patientdatabatchloader.config;
 import com.possible.patientdatabatchloader.PatientDataBatchLoaderApplication;
 import com.possible.patientdatabatchloader.dto.PatientDto;
 import com.possible.patientdatabatchloader.model.PatientRecord;
+import com.possible.patientdatabatchloader.repository.PatientRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -10,6 +11,7 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.test.MetaDataInstanceFactory;
 import org.springframework.batch.test.StepScopeTestExecutionListener;
@@ -20,27 +22,39 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
+import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
 import static org.aspectj.bridge.MessageUtil.fail;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = PatientDataBatchLoaderApplication.class)
 @ActiveProfiles("dev")
-@TestExecutionListeners({ DependencyInjectionTestExecutionListener.class, StepScopeTestExecutionListener.class})
+@TestExecutionListeners({ DependencyInjectionTestExecutionListener.class,
+        StepScopeTestExecutionListener.class, TransactionalTestExecutionListener.class})
+@Transactional
 public class BatchJobConfigTest {
     @Autowired
     private Job job;
 
     @Autowired
     private FlatFileItemReader<PatientDto> reader;
+
+    @Autowired
+    private JpaItemWriter<PatientRecord> writer;
+
     @Autowired
     private Function<PatientDto, PatientRecord> processor;
+
+    @Autowired
+    private PatientRepository patientRepository;
 
     private JobParameters jobParameters;
 
@@ -128,5 +142,29 @@ public class BatchJobConfigTest {
         assertEquals(6, entity.getBirthDate().getMonthValue());
         assertEquals(1961, entity.getBirthDate().getYear());
         assertEquals("071-81-2500", entity.getSocialSecurityNumber());
+    }
+
+    @Test
+    public void testWriter() throws Exception {
+        PatientRecord entity = PatientRecord.builder()
+                .sourceId("72739d22-3c12-539b-b3c2-13d9d4224d40")
+                .firstName("Hettie")
+                .middleInitial("P")
+                .lastName("Schmidt")
+                .emailAddress("rodo@uge.li")
+                .phoneNumber("(805) 384-3727")
+                .street("Hutij Terrace")
+                .city("Kahgepu")
+                .state("ID")
+                .zipCode("40239")
+                .birthDate(LocalDate.of(1961, 6, 14))
+                .socialSecurityNumber("071-81-2500")
+                .build();
+        StepExecution execution = MetaDataInstanceFactory.createStepExecution();
+        StepScopeTestUtils.doInStepScope(execution, () -> {
+            writer.write(List.of(entity));
+            return null;
+        });
+        assertTrue(patientRepository.findAll().size() > 0);
     }
 }
